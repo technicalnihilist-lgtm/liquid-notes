@@ -1,7 +1,7 @@
 /* Liquid Notes service worker.
    Network-first for the app shell so a deployed fix is picked up immediately,
    cache as the fallback so the app still opens with no connection. */
-const VERSION = 'liquid-notes-v3';
+const VERSION = 'liquid-notes-v4';
 const SHELL = [
   './',
   './index.html',
@@ -12,7 +12,9 @@ const SHELL = [
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
 ];
-const CORE = new Set(['/index.html', '/styles.css', '/app.js', '/manifest.webmanifest']);
+// matched by suffix: the site may live under a sub-path such as /liquid-notes/
+const CORE = ['/index.html', '/styles.css', '/app.js', '/manifest.webmanifest'];
+const isCorePath = (pathname) => CORE.some((p) => pathname === p || pathname.endsWith(p));
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -39,7 +41,7 @@ self.addEventListener('fetch', (event) => {
   try { url = new URL(req.url); } catch (e) { return; }
   if (url.origin !== self.location.origin) return;
 
-  const isCore = req.mode === 'navigate' || CORE.has(url.pathname);
+  const isCore = req.mode === 'navigate' || isCorePath(url.pathname);
 
   if (isCore) {
     event.respondWith(
