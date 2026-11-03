@@ -3,8 +3,10 @@
 An installable, offline-first note taking app with a liquid-glass interface — a real
 Progressive Web App, plus a native Android APK built automatically by GitHub Actions.
 
-- **Web / PWA:** open the Pages URL and use *Add to Home Screen* — it installs like an app and works with no network.
-- **Android:** download the APK from [Releases](../../releases) — Android 7.0+ (API 24), **zero permissions**, fully offline.
+**[Open the app →](https://technicalnihilist-lgtm.github.io/liquid-notes/)**
+
+- **Web / PWA:** [technicalnihilist-lgtm.github.io/liquid-notes](https://technicalnihilist-lgtm.github.io/liquid-notes/) — open it and use *Add to Home Screen*; it installs like an app and works with no network.
+- **Android:** download `liquid-notes-*.apk` from [Releases](../../releases/tag/v1.0.0) — Android 7.0+ (API 24), **zero permissions**, fully offline.
 
 ![Liquid Notes on desktop](screenshots/desktop.png)
 
