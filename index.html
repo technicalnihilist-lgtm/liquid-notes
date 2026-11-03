@@ -31,6 +31,8 @@
         <div class="tools">
           <button class="ib" id="bInstall" aria-label="Install app" hidden>⤓</button>
           <button class="ib" id="bNew" aria-label="New note">✎</button>
+          <button class="act" id="bSave" aria-label="Save note">Save</button>
+          <button class="act primary" id="bDone" aria-label="Save and close">Done</button>
           <button class="ib" id="bMore" aria-label="Settings" aria-expanded="false">•••</button>
         </div>
       </header>
@@ -43,9 +45,15 @@
         </aside>
 
         <section class="pane ed" data-z="0.15">
-          <input id="ti" placeholder="Title" aria-label="Title" autocomplete="off">
-          <textarea id="tx" placeholder="Start writing…" aria-label="Note body" spellcheck="true"></textarea>
-          <div class="meta"><span id="meta"></span><span id="stats"></span></div>
+          <div class="ed-head">
+            <input id="ti" placeholder="Title" aria-label="Note title" autocomplete="off">
+            <div class="state" id="state" role="status" aria-live="polite">Not saved yet</div>
+          </div>
+          <textarea id="tx" placeholder="Write your note…" aria-label="Note body" spellcheck="true"></textarea>
+          <div class="meta">
+            <span id="meta"></span>
+            <span id="stats"></span>
+          </div>
         </section>
       </div>
 

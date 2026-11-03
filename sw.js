@@ -1,7 +1,7 @@
 /* Liquid Notes service worker.
    Network-first for the app shell so a deployed fix is picked up immediately,
    cache as the fallback so the app still opens with no connection. */
-const VERSION = 'liquid-notes-v5';
+const VERSION = 'liquid-notes-v6';
 const SHELL = [
   './',
   './index.html',

@@ -143,6 +143,11 @@
 
   /* ---------------- saving (debounced, flushed on exit) ---------------- */
   let saveTimer;
+  let dirty = false;
+
+  /** True while the open note has changes that are not on disk yet. */
+  const isDirty = () => dirty;
+
   function saveNotesNow() {
     clearTimeout(saveTimer);
     saveTimer = null;
@@ -155,9 +160,12 @@
     saveTimer = setTimeout(saveNotesNow, 250);
   }
   const saveSettings = () => store.set(K_SET, JSON.stringify(S));
-  window.addEventListener('pagehide', saveNotesNow);
+  window.addEventListener('pagehide', () => { if (dirty) commit(); else saveNotesNow(); });
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') saveNotesNow();
+    if (document.visibilityState === 'hidden') {
+      if (dirty) commit();
+      else saveNotesNow();
+    }
   });
 
   /* ---------------- toast ---------------- */
@@ -469,12 +477,53 @@
     li.lastChild.textContent = previewOf(n);
   }
 
+  function countNotes() {
+    const meta = $('#meta');
+    if (!meta) return;
+    meta.textContent = notes.length + (notes.length === 1 ? ' note' : ' notes');
+  }
+
+  function paintSaveState() {
+    const st = $('#state');
+    const btn = $('#bSave');
+    if (st) {
+      if (dirty) {
+        st.textContent = 'Unsaved changes';
+        st.classList.add('dirty');
+      } else {
+        const n = current();
+        st.textContent = n ? 'Saved ' + fmt(n.u) : 'Not saved yet';
+        st.classList.remove('dirty');
+      }
+    }
+    if (btn) {
+      btn.textContent = dirty ? 'Save' : 'Saved \u2713';
+      btn.classList.toggle('is-clean', !dirty);
+    }
+  }
+
+  /** Write the open note to storage and mark it clean. */
+  function commit(opts) {
+    const n = current();
+    if (!n) return;
+    if (dirty) {
+      n.u = Date.now();
+      saveNotesNow();
+      dirty = false;
+    } else {
+      saveNotesNow();          // flush anything still debounced
+    }
+    paintSaveState();
+    if (opts && opts.rerender) render();
+  }
+
   function show() {
     const n = current();
     $('#ti').value = n ? n.t : '';
     $('#tx').value = n ? n.b : '';
-    $('#meta').textContent = n ? 'Edited ' + fmt(n.u) : '';
+    countNotes();
     stats();
+    paintSaveState();
   }
 
   function stats() {
@@ -525,7 +574,7 @@
     if (e.target.closest('.dbtn')) { delNote(+li.dataset.id); return; }
     if (suppressed) { suppressed = false; return; }
     if (li.classList.contains('armed')) { disarm(); return; }
-    saveNotesNow();
+    commit();
     cur = +li.dataset.id;
     render();
     show();
@@ -547,23 +596,23 @@
     n.t = $('#ti').value;
     n.b = $('#tx').value;
     n.u = Date.now();
-    $('#meta').textContent = 'Edited ' + fmt(n.u);
-    saveNotesSoon();
+    dirty = true;
+    paintSaveState();
     refreshRow(n.id);   // in place: no re-sort, no scroll jump, no lost focus
     stats();
+    saveNotesSoon();    // safety net only; Save/Done is the real action
   }
   $('#ti').addEventListener('input', edit);
   $('#tx').addEventListener('input', edit);
   ['#ti', '#tx'].forEach((sel) => {
     $(sel).addEventListener('blur', () => {
-      saveNotesNow();
-      render();          // now it is safe to re-sort
+      commit({ rerender: true });   // safe now: focus has left the editor
     });
   });
   $('#q').addEventListener('input', (e) => { filter = e.target.value; render(); });
 
   $('#bNew').addEventListener('click', () => {
-    saveNotesNow();
+    commit({ rerender: true });
     const n = { id: uid(), t: '', b: '', u: Date.now() };
     notes.push(n);
     cur = n.id;
@@ -573,6 +622,34 @@
     show();
     $('#ti').focus();
   });
+
+  /* ---------------- Save / Done ---------------- */
+  function flashSaved() {
+    const btn = $('#bSave');
+    if (!btn) return;
+    btn.classList.remove('saved');
+    // restart the pulse animation
+    void btn.offsetWidth;
+    btn.classList.add('saved');
+  }
+
+  const saveBtn = $('#bSave');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => {
+      commit({ rerender: true });
+      flashSaved();
+      toast(current() ? 'Note saved' : 'Nothing to save');
+    });
+  }
+
+  const doneBtn = $('#bDone');
+  if (doneBtn) {
+    doneBtn.addEventListener('click', () => {
+      commit({ rerender: true });
+      toast('Note saved');
+      closeWin();
+    });
+  }
 
   /* ---------------- sound ---------------- */
   let AC;
@@ -756,7 +833,9 @@
   /* ---------------- keyboard ---------------- */
   document.addEventListener('keydown', (e) => {
     const mod = e.metaKey || e.ctrlKey;
-    if (mod && (e.key === 'n' || e.key === 'N')) { e.preventDefault(); $('#bNew').click(); }
+    if (mod && (e.key === 's' || e.key === 'S')) { e.preventDefault(); if (saveBtn) saveBtn.click(); }
+    else if (mod && e.key === 'Enter') { e.preventDefault(); if (doneBtn) doneBtn.click(); }
+    else if (mod && (e.key === 'n' || e.key === 'N')) { e.preventDefault(); $('#bNew').click(); }
     else if (mod && (e.key === 'f' || e.key === 'F')) { e.preventDefault(); $('#q').focus(); }
     else if (e.key === 'Escape') {
       if ($('#menu').classList.contains('open')) toggleMenu(false);

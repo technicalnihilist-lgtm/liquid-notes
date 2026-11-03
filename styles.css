@@ -65,8 +65,26 @@ body{
 }
 
 .bar{display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px;position:relative;z-index:2}
-.title{flex:1;font-weight:700;font-size:24px;letter-spacing:-.02em}
-.tools{display:flex;gap:6px}
+.title{flex:1;min-width:0;font-weight:700;font-size:24px;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tools{display:flex;gap:8px;align-items:center}
+
+/* Save / Done — the explicit actions of a notes app */
+.act{
+  border:1px solid rgba(255,255,255,.5);background:rgba(var(--gl),.55);color:var(--ink);
+  min-height:38px;padding:0 16px;border-radius:999px;font:inherit;font-size:14px;font-weight:600;
+  cursor:pointer;transition:transform .2s,background .2s,opacity .2s;white-space:nowrap;
+}
+.act:hover{background:rgba(var(--gl),.8)}
+.act:active{transform:scale(.95)}
+.act.primary{
+  background:var(--accent);color:#fff;border-color:transparent;
+  box-shadow:0 6px 18px rgba(10,132,255,.35);
+}
+.act.primary:hover{filter:brightness(1.07)}
+.act.is-clean{border-color:rgba(255,255,255,.35);color:var(--ink2);min-width:92px}
+.act{min-width:92px}
+.act.saved{animation:savedPulse .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes savedPulse{0%{transform:scale(1)}45%{transform:scale(1.12)}100%{transform:scale(1)}}
 .ib{
   border:1px solid rgba(255,255,255,.3);background:rgba(var(--gl),.35);color:var(--ink);
   width:40px;height:40px;border-radius:50%;font-size:16px;cursor:pointer;line-height:1;
@@ -113,13 +131,16 @@ body{
 .hint{color:var(--ink2);font-size:12px;text-align:center;padding-top:8px}
 
 /* ---------- editor ---------- */
-.ed{flex:1;display:flex;flex-direction:column;padding:16px 20px;min-width:0}
+.ed{flex:1;display:flex;flex-direction:column;padding:0;min-width:0}
+.ed-head{padding:16px 20px 10px;border-bottom:1px solid var(--line);flex:0 0 auto}
+.state{font-size:12px;color:var(--ink2);margin-top:2px}
+.state.dirty{color:var(--accent);font-weight:600}
 #ti{
   border:0;outline:0;background:none;color:var(--ink);font-family:inherit;font-weight:700;
   font-size:calc(var(--fs)*1.5);line-height:1.2;margin-bottom:8px;width:100%;
 }
-#tx{flex:1;border:0;outline:0;resize:none;background:none;color:var(--ink);font:inherit;line-height:1.6;caret-color:var(--accent)}
-.meta{color:var(--ink2);font-size:12px;margin-top:6px;display:flex;justify-content:space-between;gap:12px}
+#tx{flex:1;border:0;outline:0;resize:none;background:none;color:var(--ink);font:inherit;line-height:1.6;caret-color:var(--accent);padding:14px 20px 0}
+.meta{color:var(--ink2);font-size:12px;padding:6px 20px 14px;display:flex;justify-content:space-between;gap:12px;flex:0 0 auto}
 
 /* ---------- settings sheet ---------- */
 .menu{
@@ -170,9 +191,16 @@ body{
   .menu{right:8px;width:calc(100% - 16px)}
   .title{font-size:20px}
   .ib{width:44px;height:44px;font-size:17px}
+  .act{min-height:44px;padding:0 12px;font-size:13px;min-width:76px}
   .chip{min-height:42px;padding:10px 16px;font-size:14px}
   .sw{width:38px;height:38px}
   .row{gap:10px}
+  .bar{gap:8px;padding-left:14px;padding-right:14px}
+  .tools{gap:6px}
+}
+@media (max-width:380px){
+  .act{min-width:68px;padding:0 10px}
+  .ib{width:40px;height:40px}
 }
 @media (prefers-reduced-motion:reduce){
   .orb,.win,#list li{transition:none!important;animation:none!important}

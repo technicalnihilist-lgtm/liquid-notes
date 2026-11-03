@@ -14,7 +14,13 @@ Progressive Web App, plus a native Android APK built automatically by GitHub Act
 
 Notes are stored on the device (localStorage) — nothing leaves your phone or browser, there is no account and no server.
 
-- Create, edit, search and delete notes with autosave on every keystroke
+- **Title at the top, note below, then Save or Done** — type a title, write the note, press
+  **Save** (or `Ctrl`/`Cmd` + `S`) and it is written to the device; press **Done** to save and
+  close the app window
+- The button reads **Save** while you have unsaved changes and **Saved ✓** once it is on disk,
+  and the line under the title says exactly when it was saved
+- Create, edit, search and delete notes; drafts are also flushed when you switch notes,
+  leave the field, background the app or close it, so nothing is ever lost
 - Hold a note in the list to reveal its delete button (with haptic feedback)
 - Live word and character count
 - Export all notes as **JSON** or **Markdown**, and import a JSON export back
@@ -24,6 +30,22 @@ Notes are stored on the device (localStorage) — nothing leaves your phone or b
 - Parallax depth and 3D tilt driven by pointer movement or device orientation
 - Animated open/close with a launcher icon, plus an optional sound effect
 - Full offline support through a service worker, and an in-app install button
+
+### New in 1.3.0 — a real notes app flow
+
+The app was autosave-only, which gives you no moment of "this is saved now". It now
+behaves like a notes app:
+
+- A title field sits at the top of the editor with the note underneath, above a hairline.
+- **Save** writes the note and the button switches to **Saved ✓**; the state line under the
+  title shows the exact save time, and a toast confirms it.
+- **Done** saves and closes the app window (back to the launcher icon).
+- Save is never a no-op: it is always tappable and always confirms, so a tap never feels dead.
+- Switching notes, creating a note, leaving the field, backgrounding or closing the app all
+  commit the draft first — the explicit button is for control, not for safety.
+
+Covered by 9 new automated checks (title above body, unsaved marker, Save writes to storage,
+button state, toast, list title, survives reload, Ctrl+S, Done closes).
 
 ### Fixed in 1.2.0 — the repeated crashes
 
@@ -90,6 +112,8 @@ The 1.0.0 build had real defects, found with an automated bug-hunt harness and f
 
 | Keys | Action |
 | --- | --- |
+| `Ctrl`/`Cmd` + `S` | Save the note |
+| `Ctrl`/`Cmd` + `Enter` | Save and Done |
 | `Ctrl`/`Cmd` + `N` | New note |
 | `Ctrl`/`Cmd` + `F` | Focus search |
 | `Esc` | Close the settings panel |
