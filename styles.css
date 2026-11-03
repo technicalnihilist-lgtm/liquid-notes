@@ -1,9 +1,10 @@
 :root{
   --gl:255,255,255;--ink:#14161c;--ink2:rgba(20,22,28,.55);
   --base:#dfe6ff;--bd:#0b1030;--bl:#dfe6ff;--line:rgba(0,0,0,.1);
-  --blur:28px;--op:.22;--sat:180%;--rad:28px;--speed:1;--fs:17px;
+  --blur:18px;--op:.22;--sat:140%;--rad:28px;--speed:1;--fs:17px;
   --accent:#0a84ff;--mx:50%;--my:0%;
   --pa:#7c5cff;--pb:#22d3ee;--pc:#f472b6;
+  --paG:rgba(124,92,255,.55);--pbG:rgba(34,211,238,.5);--pcG:rgba(244,114,182,.5);
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){
@@ -21,17 +22,29 @@ body{
   transition:background .5s;
 }
 
-/* ---------- animated background ---------- */
-.bg{position:fixed;inset:-10%;overflow:hidden;z-index:0}
-.orb{position:absolute;border-radius:50%;opacity:.9;will-change:transform;background:radial-gradient(circle,var(--c) 0,transparent 68%)}
-.o1{width:52vmax;height:52vmax;left:-8vmax;top:-12vmax;--c:var(--pa)}
-.o2{width:50vmax;height:50vmax;right:-8vmax;top:24vmax;--c:var(--pb)}
-.o3{width:46vmax;height:46vmax;left:34vmax;bottom:-14vmax;--c:var(--pc)}
-.o4{width:38vmax;height:38vmax;left:44vmax;top:6vmax;--c:var(--pa);opacity:.55}
+/* ---------- background ----------
+   The colour lives in ONE static multi-stop gradient: it is painted once, costs
+   no permanent GPU layers, and a full-screen blur over it stays cheap. The orb
+   elements are only small accent blobs for the parallax, and they are switched
+   off entirely in lite mode. Huge blurred layers were what pushed the Android
+   WebView renderer into an out-of-memory crash. */
+.bg{
+  position:fixed;inset:0;overflow:hidden;z-index:0;
+  background:
+    radial-gradient(58vmax 58vmax at 6% 2%, var(--paG), transparent 64%),
+    radial-gradient(54vmax 54vmax at 98% 34%, var(--pbG), transparent 64%),
+    radial-gradient(56vmax 56vmax at 52% 108%, var(--pcG), transparent 64%),
+    var(--base);
+}
+.orb{position:absolute;border-radius:50%;opacity:.5;background:radial-gradient(circle,var(--c) 0,transparent 70%)}
+.o1{width:34vmax;height:34vmax;left:-12vmax;top:-14vmax;--c:var(--pa)}
+.o2{width:32vmax;height:32vmax;right:-12vmax;top:24vmax;--c:var(--pb)}
+.o3{width:30vmax;height:30vmax;left:30vmax;bottom:-16vmax;--c:var(--pc)}
+.o4{width:26vmax;height:26vmax;left:46vmax;top:10vmax;--c:var(--pa);opacity:.35}
 
 /* ---------- window shell ---------- */
-.stage{position:fixed;inset:0;display:block;perspective:1400px;z-index:1}
-.tilt{will-change:transform;width:100%;height:100%}
+.stage{position:fixed;inset:0;display:block;z-index:1}
+.tilt{width:100%;height:100%}
 .win{
   position:relative;width:100%;height:100%;border-radius:0;border-width:0;
   transition:width calc(.55s/var(--speed)) cubic-bezier(.3,1.4,.4,1),height calc(.55s/var(--speed)) cubic-bezier(.3,1.4,.4,1),border-radius .4s;
@@ -40,10 +53,15 @@ body{
   backdrop-filter:blur(var(--blur)) saturate(var(--sat));
   box-shadow:inset 0 1px 0 rgba(255,255,255,.5);
   display:flex;flex-direction:column;overflow:hidden;
+  transform:translateZ(0);
 }
-.win::after{
-  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-  background:radial-gradient(420px circle at var(--mx) var(--my),rgba(255,255,255,.28),transparent 60%);
+/* specular highlight only where a real pointer exists — on touch it is a
+   full-window repaint for nothing */
+@media (hover:hover) and (pointer:fine){
+  .win::after{
+    content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    background:radial-gradient(360px circle at var(--mx) var(--my),rgba(255,255,255,.22),transparent 62%);
+  }
 }
 
 .bar{display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px;position:relative;z-index:2}
@@ -51,7 +69,7 @@ body{
 .tools{display:flex;gap:6px}
 .ib{
   border:1px solid rgba(255,255,255,.3);background:rgba(var(--gl),.35);color:var(--ink);
-  width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer;line-height:1;
+  width:40px;height:40px;border-radius:50%;font-size:16px;cursor:pointer;line-height:1;
   transition:transform .3s cubic-bezier(.3,1.8,.5,1),background .2s;
 }
 .ib:hover{background:rgba(var(--gl),.6)}
@@ -61,18 +79,18 @@ body{
 .pane{
   background:rgba(var(--gl),.28);border:1px solid rgba(255,255,255,.25);
   border-radius:calc(var(--rad) - 8px);box-shadow:inset 1px 1px 0 rgba(255,255,255,.35);
-  min-height:0;will-change:transform;
+  min-height:0;
 }
 
 /* ---------- sidebar ---------- */
 .side{width:300px;display:flex;flex-direction:column;padding:12px;min-height:0}
 #q{
   width:100%;border:0;outline:0;background:rgba(var(--gl),.4);color:var(--ink);
-  padding:10px 14px;border-radius:999px;font:inherit;font-size:15px;margin-bottom:10px;
+  padding:11px 14px;border-radius:999px;font:inherit;font-size:15px;margin-bottom:10px;
 }
-#list{list-style:none;margin:0;padding:0;overflow:auto;flex:1}
+#list{list-style:none;margin:0;padding:0;overflow:auto;flex:1;-webkit-overflow-scrolling:touch}
 #list li{
-  position:relative;padding:10px 12px;border-radius:16px;cursor:pointer;
+  position:relative;padding:11px 12px;border-radius:16px;cursor:pointer;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
   transition:background .2s,transform .3s cubic-bezier(.3,1.6,.5,1);
 }
@@ -88,7 +106,7 @@ body{
 @keyframes pop{from{transform:scale(.6);opacity:0}}
 @keyframes gone{to{transform:scale(.6) translateX(-30px);opacity:0}}
 .dbtn{
-  position:absolute;right:8px;top:50%;margin-top:-16px;height:32px;border:0;border-radius:999px;
+  position:absolute;right:8px;top:50%;margin-top:-18px;height:36px;border:0;border-radius:999px;
   padding:0 14px;background:#ff3b30;color:#fff;font-family:inherit;font-weight:600;font-size:13px;
   cursor:pointer;animation:pop calc(.5s/var(--speed)) cubic-bezier(.3,1.8,.5,1);
 }
@@ -106,9 +124,9 @@ body{
 /* ---------- settings sheet ---------- */
 .menu{
   position:absolute;right:14px;top:calc(58px + env(safe-area-inset-top,0px));
-  visibility:hidden;width:300px;max-height:calc(100% - 74px);overflow:auto;overscroll-behavior:contain;z-index:5;padding:14px 14px 22px;border-radius:22px;
-  background:rgba(var(--gl),.55);
-  -webkit-backdrop-filter:blur(40px) saturate(200%);backdrop-filter:blur(40px) saturate(200%);
+  visibility:hidden;width:300px;max-height:calc(100% - 74px);overflow:auto;overscroll-behavior:contain;z-index:5;
+  padding:14px 14px 22px;border-radius:22px;
+  background:rgba(var(--gl),.78);
   border:1px solid rgba(255,255,255,.35);
   box-shadow:inset 1px 1px 0 rgba(255,255,255,.5),0 24px 60px rgba(0,0,0,.35);
   transform-origin:top right;transform:scale(.2);opacity:0;pointer-events:none;
@@ -117,7 +135,7 @@ body{
 .menu.open{transform:none;opacity:1;pointer-events:auto;visibility:visible;transition-delay:0s}
 .menu label{display:flex;justify-content:space-between;font-size:13px;margin-top:8px}
 .menu output{color:var(--ink2);font-variant-numeric:tabular-nums}
-.menu input[type=range]{width:100%;accent-color:var(--accent)}
+.menu input[type=range]{width:100%;height:28px;accent-color:var(--accent)}
 .menu h4{margin:12px 0 4px;font-size:13px;color:var(--ink2);font-weight:600}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .sw{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.6);cursor:pointer;padding:0}
@@ -151,27 +169,58 @@ body{
   .side{width:auto;height:38%;flex:0 0 auto}
   .menu{right:8px;width:calc(100% - 16px)}
   .title{font-size:20px}
-  .ib{width:40px;height:40px;font-size:17px}
-  .chip{min-height:40px;padding:9px 15px;font-size:14px}
+  .ib{width:44px;height:44px;font-size:17px}
+  .chip{min-height:42px;padding:10px 16px;font-size:14px}
   .sw{width:38px;height:38px}
   .row{gap:10px}
 }
 @media (prefers-reduced-motion:reduce){
   .orb,.win,#list li{transition:none!important;animation:none!important}
 }
+
+/* ---------- safe mode (inside the Android WebView) ----------
+   A smaller blur over the same palette: still frosted, far cheaper for the
+   WebView renderer than a full-screen 18px + saturate pass. */
+:root[data-perf="safe"] .win{
+  -webkit-backdrop-filter:blur(10px) saturate(120%);
+  backdrop-filter:blur(10px) saturate(120%);
+}
+:root[data-perf="safe"] .orb{display:none}
+:root[data-perf="safe"] .win::after{display:none}
+
+/* ---------- lite / low-memory mode ----------
+   No backdrop blur, no translucent layers: on weak GPUs the full glass effect
+   is what pushes the WebView renderer over its memory budget. */
+:root[data-perf="lite"] .win{
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+  background:rgba(var(--gl),.9);
+}
+:root[data-perf="lite"] .pane,
+:root[data-perf="lite"] .menu{background:rgba(var(--gl),.75)}
+:root[data-perf="lite"] .menu{-webkit-backdrop-filter:none;backdrop-filter:none}
+:root[data-perf="lite"] .win::after{display:none}
+:root[data-perf="lite"] .orb{display:none}
+@media (prefers-reduced-transparency:reduce){
+  .win{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(var(--gl),.9)}
+  .win::after{display:none}
+}
+
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* ---------- fatal error fallback ---------- */
 .fatal{
   position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:50;
   width:min(420px,calc(100vw - 32px));padding:22px;border-radius:22px;
-  background:rgba(255,255,255,.9);color:#14161c;border:1px solid rgba(0,0,0,.08);
+  background:rgba(255,255,255,.94);color:#14161c;border:1px solid rgba(0,0,0,.08);
   box-shadow:0 24px 70px rgba(0,0,0,.3);
-  -webkit-backdrop-filter:blur(30px);backdrop-filter:blur(30px);
 }
-@media (prefers-color-scheme:dark){.fatal{background:rgba(30,32,44,.94);color:#f4f5fa;border-color:rgba(255,255,255,.14)}}
+@media (prefers-color-scheme:dark){.fatal{background:rgba(30,32,44,.96);color:#f4f5fa;border-color:rgba(255,255,255,.14)}}
 .fatal h2{margin:0 0 8px;font-size:18px}
 .fatal p{margin:0 0 14px;font-size:14px;line-height:1.5;opacity:.75}
+.fatal pre{
+  margin:0 0 12px;max-height:120px;overflow:auto;font-size:11px;line-height:1.4;
+  background:rgba(0,0,0,.06);border-radius:10px;padding:8px;white-space:pre-wrap;word-break:break-word;
+}
 .fatal .row{margin-top:0}
 .fatal .chip{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12)}
 @media (prefers-color-scheme:dark){.fatal .chip{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18)}}

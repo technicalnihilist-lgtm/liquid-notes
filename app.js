@@ -7,9 +7,9 @@
   const root = document.documentElement;
 
   const DEFAULTS = {
-    blur: 28, op: 22, sat: 180, depth: 18, tilt: 0, speed: 1, bounce: 1,
+    blur: 18, op: 22, sat: 140, depth: 18, tilt: 0, speed: 1, bounce: 1,
     fs: 17, rad: 28, accent: '#0a84ff', bg: 'aurora', theme: 'auto',
-    par: true, snd: true,
+    par: true, snd: true, perf: 'auto',
   };
   const PAL = {
     aurora: ['#7c5cff', '#22d3ee', '#f472b6', '#0b1030', '#dfe6ff'],
@@ -30,6 +30,8 @@
     ['fs', 'Text size', 13, 24, 1, 'px'],
     ['rad', 'Corner radius', 8, 44, 1, 'px'],
   ];
+  const PERF = ['auto', 'lite', 'full'];
+  const insideApp = location.host === 'appassets.androidplatform.net';
   const K_NOTES = 'ln_notes';
   const K_SET = 'ln_set';
   const uid = () => Date.now() + Math.floor(Math.random() * 1000);
@@ -118,11 +120,13 @@
     if (THEMES.indexOf(raw.theme) >= 0) s.theme = raw.theme;
     if (typeof raw.par === 'boolean') s.par = raw.par;
     if (typeof raw.snd === 'boolean') s.snd = raw.snd;
+    if (PERF.indexOf(raw.perf) >= 0) s.perf = raw.perf;
     return s;
   }
 
   /* ---------------- state ---------------- */
   let S = sanitizeSettings(readJSON(K_SET, {}));
+  if (/[?&]lite=1/.test(location.search)) S.perf = 'lite';
   let notes = sanitizeNotes(readJSON(K_NOTES, []));
   if (!notes.length) {
     notes = [{
@@ -180,6 +184,9 @@
     box.innerHTML =
       '<h2>Something went wrong</h2>' +
       '<p>Liquid Notes hit an unexpected error. Your notes are still on this device.</p>' +
+      '<pre>' + String((err && (err.stack || err.message)) || err || 'unknown error')
+        .replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]))
+        .slice(0, 400) + '</pre>' +
       '<div class="row"><button class="chip" data-fatal="reload">Reload</button>' +
       '<button class="chip" data-fatal="export">Export my notes</button>' +
       '<button class="chip" data-fatal="reset">Reset app data</button></div>';
@@ -199,8 +206,28 @@
   window.addEventListener('unhandledrejection', (e) => fatal(e.reason));
 
   /* ---------------- theme ---------------- */
+  /* auto = full glass on the web, a cheaper frosted glass inside the Android
+     WebView (a full-screen blur there is what the renderer cannot always
+     afford). lite removes the blur completely — that is also what the shell
+     falls back to after a renderer crash. */
+  let perfMode = 'full';
+  function resolvePerf() {
+    if (S.perf === 'lite' || S.perf === 'full') return S.perf;
+    return insideApp ? 'safe' : 'full';
+  }
+
+  function hexToRgba(hex, alpha) {
+    const h = String(hex || '').replace('#', '');
+    const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+    const n = parseInt(full, 16);
+    if (!Number.isFinite(n) || full.length !== 6) return 'rgba(124,92,255,' + alpha + ')';
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + alpha + ')';
+  }
+
   function applySettings() {
     const r = root.style;
+    perfMode = resolvePerf();
+    root.setAttribute('data-perf', perfMode);
     const p = PAL[S.bg] || PAL.aurora;
     r.setProperty('--blur', S.blur + 'px');
     r.setProperty('--op', S.op / 100);
@@ -209,6 +236,9 @@
     r.setProperty('--fs', S.fs + 'px');
     r.setProperty('--rad', S.rad + 'px');
     r.setProperty('--accent', S.accent);
+    r.setProperty('--paG', hexToRgba(p[0], 0.55));
+    r.setProperty('--pbG', hexToRgba(p[1], 0.5));
+    r.setProperty('--pcG', hexToRgba(p[2], 0.5));
     r.setProperty('--pa', p[0]);
     r.setProperty('--pb', p[1]);
     r.setProperty('--pc', p[2]);
@@ -237,6 +267,9 @@
       ).join('')}` +
       `<button class="chip${S.par ? ' on' : ''}" data-par="1">Parallax</button>` +
       `<button class="chip${S.snd ? ' on' : ''}" data-snd="1">Sound</button></div>` +
+      `<h4>Effects</h4><div class="row">${PERF.map((k) =>
+        `<button class="chip${S.perf === k ? ' on' : ''}" data-perf="${k}">${k[0].toUpperCase() + k.slice(1)}</button>`
+      ).join('')}<span class="hint" style="text-align:left;padding:0">Lite turns off the blur</span></div>` +
       `<h4>Notes</h4><div class="row">` +
       `<button class="chip" data-a="export">Export JSON</button>` +
       `<button class="chip" data-a="import">Import JSON</button>` +
@@ -250,12 +283,20 @@
       `</div>`;
   }
 
+  function reportUi() {
+    const bridge = window.LiquidBridge;
+    if (bridge && typeof bridge.setUiState === 'function') {
+      try { bridge.setUiState($('#menu').classList.contains('open'), isOpen); } catch (e) {}
+    }
+  }
+
   function toggleMenu(force) {
     const menu = $('#menu');
     const open = force === undefined ? !menu.classList.contains('open') : force;
     menu.classList.toggle('open', open);
     const btn = $('#bMore');
     if (btn) btn.setAttribute('aria-expanded', String(open));
+    reportUi();
   }
 
   $('#menu').addEventListener('input', (e) => {
@@ -277,6 +318,7 @@
     if (d.acc) S.accent = d.acc;
     else if (d.bg) S.bg = d.bg;
     else if (d.th) S.theme = d.th;
+    else if (d.perf) S.perf = d.perf;
     else if (d.par) S.par = !S.par;
     else if (d.snd) { S.snd = !S.snd; if (S.snd) cleanSound(); }
     else if (d.a === 'replay') { toggleMenu(false); closeWin(() => setTimeout(openWin, 250)); return; }
@@ -614,6 +656,7 @@
     isOpen = true;
     win.style.visibility = 'visible';
     home.classList.remove('show');
+    reportUi();
     if (reduceMotion || typeof win.animate !== 'function') return;
     const b = S.bounce;
     origin();
@@ -630,6 +673,7 @@
     if (!isOpen) return;
     isOpen = false;
     toggleMenu(false);
+    reportUi();
     const done = () => {
       win.style.visibility = 'hidden';
       home.classList.add('show');
@@ -692,13 +736,17 @@
       return;
     }
     lx = cx; ly = cy; ld = S.depth + S.par; lt = S.tilt;
-    const on = S.par;
+    const on = S.par && perfMode === 'full';
     const d = on ? S.depth : 0;
     const t = on ? S.tilt : 0;
-    orbs.forEach((o) => {
-      o.style.transform = `translate3d(${-cx * o.dataset.d * (d / 18) * 2}px,${-cy * o.dataset.d * (d / 18) * 2}px,0)`;
-    });
-    tilt.style.transform = `rotateX(${-cy * t}deg) rotateY(${cx * t}deg)`;
+    if (d) {
+      orbs.forEach((o) => {
+        o.style.transform = `translate3d(${-cx * o.dataset.d * (d / 18) * 2}px,${-cy * o.dataset.d * (d / 18) * 2}px,0)`;
+      });
+    }
+    tilt.style.transform = t
+      ? `perspective(1400px) rotateX(${-cy * t}deg) rotateY(${cx * t}deg)`
+      : 'none';
     zs.forEach((z) => {
       z.style.transform = `translate3d(${cx * d * z.dataset.z}px,${cy * d * z.dataset.z}px,0)`;
     });
@@ -753,7 +801,6 @@
   });
 
   /* ---------------- service worker ---------------- */
-  const insideApp = location.host === 'appassets.androidplatform.net';
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !insideApp) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -768,6 +815,7 @@
     show();
     openWin();
     if (!reduceMotion) loop();
+    reportUi();
     if (!store.available) {
       toast('Storage is blocked in this browser \u2014 notes will not be saved');
     }

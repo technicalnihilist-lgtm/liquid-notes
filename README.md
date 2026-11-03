@@ -25,6 +25,38 @@ Notes are stored on the device (localStorage) — nothing leaves your phone or b
 - Animated open/close with a launcher icon, plus an optional sound effect
 - Full offline support through a service worker, and an in-app install button
 
+### Fixed in 1.2.0 — the repeated crashes
+
+The crash was on the graphics side, not in the note logic. A full-screen
+`backdrop-filter` blur sitting inside a 3D `perspective` container, with four
+huge `will-change: transform` layers behind it, runs the Android WebView
+**renderer** out of memory. When the renderer dies Android kills the whole app
+unless the shell handles it — so it "crashed again and again" on the same screen.
+
+- **Renderer crashes are caught, not fatal** — `onRenderProcessGone` returns `true`,
+  rebuilds the WebView in lite mode, and keeps the app alive with a short notice.
+- **Far less GPU pressure** — the background colour is now one static multi-stop
+  gradient instead of four enormous blurred layers; `will-change` is gone from the
+  window, the panes and the tilt wrapper; the 3D perspective is applied only when
+  tilt is actually enabled; the specular highlight is desktop-only; the default
+  blur dropped from 28px to 18px.
+- **Three effect levels** — *Auto* (full glass on the web, a cheaper 10px frost
+  inside the Android shell), *Lite* (no blur at all) and *Full*. The shell also
+  opens in lite mode by itself after a renderer failure.
+- **Every crash is now recorded** — an uncaught exception is written to
+  `last-crash.txt` and shown on the next launch with a Copy button, and the web
+  fallback panel prints the actual stack trace. A report is now actionable.
+- **No more blank screen** — `onCreate` is wrapped, page load errors show a native
+  Reload / Reload in lite mode screen, and `onTrimMemory` clears WebView caches
+  before the renderer is pushed into OOM.
+- **Back button is deterministic** — the web app reports its state through the
+  bridge, so Back no longer races an async `evaluateJavascript` callback.
+
+Verified by two harnesses: 48 browser checks (corrupt storage, every control,
+export/import, offline, touch, reduced motion) and 11 checks that run the app
+under the APK's exact conditions — the virtual `https://appassets.androidplatform.net`
+origin, no network, no service worker, and a stub native bridge.
+
 ### Fixed in 1.1.0
 
 The 1.0.0 build had real defects, found with an automated bug-hunt harness and fixed:
