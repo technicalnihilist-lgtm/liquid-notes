@@ -46,8 +46,8 @@ jobs:
       - name: Rename artifact
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/debug/app-debug.apk \
-             "dist/liquid-notes-${{ github.run_number }}.apk"
+          # fixed filename so each build replaces the previous APK on the release
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/liquid-notes.apk
           ls -lh dist
 
       - name: Upload APK artifact
@@ -65,7 +65,7 @@ jobs:
           body: |
             Liquid Notes — installable liquid-glass notes.
 
-            - `liquid-notes-*.apk` — Android 7.0+ (API 24), no permissions requested, works fully offline.
+            - `liquid-notes.apk` — Android 7.0+ (API 24), no permissions requested, works fully offline.
             - Web version: the app is also a PWA — open the Pages URL and use "Add to Home Screen".
 
             Built automatically from `${{ github.sha }}` by GitHub Actions.
