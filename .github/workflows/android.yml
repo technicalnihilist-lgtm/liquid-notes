@@ -1,0 +1,74 @@
+name: Android APK
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      # Keep one debug keystore across runs so every new APK installs over the
+      # previous one instead of failing with a signature mismatch.
+      - name: Restore debug keystore
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: liquid-notes-debug-keystore-v1
+
+      - name: Build debug APK
+        working-directory: android
+        run: gradle --no-daemon assembleDebug
+
+      - name: Rename artifact
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk \
+             "dist/liquid-notes-${{ github.run_number }}.apk"
+          ls -lh dist
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: liquid-notes-apk
+          path: dist/*.apk
+          if-no-files-found: error
+
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v1.0.0' }}
+          name: Liquid Notes ${{ github.ref_type == 'tag' && github.ref_name || 'v1.0.0' }}
+          body: |
+            Liquid Notes — installable liquid-glass notes.
+
+            - `liquid-notes-*.apk` — Android 7.0+ (API 24), no permissions requested, works fully offline.
+            - Web version: the app is also a PWA — open the Pages URL and use "Add to Home Screen".
+
+            Built automatically from `${{ github.sha }}` by GitHub Actions.
+          files: dist/*.apk
+          fail_on_unmatched_files: true
+          generate_release_notes: true

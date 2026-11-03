@@ -1,0 +1,17 @@
+# Android / Gradle build output
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/app/src/main/assets/
+android/app/release/
+*.iml
+.idea/
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Tooling
+node_modules/
+package-lock.json

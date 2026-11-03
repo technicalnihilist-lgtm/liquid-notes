@@ -1,0 +1,55 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'app.liquidnotes'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'app.liquidnotes'
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    buildTypes {
+        debug {
+            // stable debug keystore is restored from the Actions cache, so new
+            // builds install over older ones instead of clashing signatures
+            signingConfig signingConfigs.debug
+        }
+        release {
+            minifyEnabled false
+            // demo app: ship the debug-signed APK. Replace with your own
+            // keystore + signingConfigs.release before publishing anywhere.
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    packagingOptions {
+        resources.excludes += ['META-INF/*']
+    }
+}
+
+// The web app lives at the repository root — one source of truth.
+// `copyWebAssets` mirrors it into the APK's assets folder before packaging.
+tasks.register('copyWebAssets', Copy) {
+    from(rootProject.projectDir.parentFile) {
+        include 'index.html'
+        include 'styles.css'
+        include 'app.js'
+        include 'manifest.webmanifest'
+        include 'sw.js'
+        include 'icons/**'
+    }
+    into layout.projectDirectory.dir('src/main/assets')
+}
+
+tasks.named('preBuild').configure { dependsOn 'copyWebAssets' }
