@@ -6,7 +6,7 @@ Progressive Web App, plus a native Android APK built automatically by GitHub Act
 **[Open the app →](https://technicalnihilist-lgtm.github.io/liquid-notes/)**
 
 - **Web / PWA:** [technicalnihilist-lgtm.github.io/liquid-notes](https://technicalnihilist-lgtm.github.io/liquid-notes/) — open it and use *Add to Home Screen*; it installs like an app and works with no network.
-- **Android:** download `liquid-notes-*.apk` from [Releases](../../releases/tag/v1.0.0) — Android 7.0+ (API 24), **zero permissions**, fully offline.
+- **Android:** download `liquid-notes.apk` from [Releases](../../releases) — Android 7.0+ (API 24), **zero permissions**, fully offline.
 
 ![Liquid Notes on desktop](screenshots/desktop.png)
 
@@ -24,6 +24,29 @@ Notes are stored on the device (localStorage) — nothing leaves your phone or b
 - Parallax depth and 3D tilt driven by pointer movement or device orientation
 - Animated open/close with a launcher icon, plus an optional sound effect
 - Full offline support through a service worker, and an in-app install button
+
+### Fixed in 1.1.0
+
+The 1.0.0 build had real defects, found with an automated bug-hunt harness and fixed:
+
+- **Crash on damaged stored data** — a null or malformed note in local storage threw during
+  render and left a dead screen. Notes and settings are now sanitised on load, and a
+  fallback panel offers Reload / Export / Reset instead of a blank app.
+- **Notes lost in the APK** — the shell loaded the app over `file://`, which is not a secure
+  context, so `localStorage` was unreliable. Assets are now served from a virtual
+  `https://appassets.androidplatform.net` origin.
+- **Import did nothing in the APK** — no file chooser was wired into the WebView.
+- **Export did nothing in the APK** — blob downloads are ignored by WebView. A native
+  bridge now writes the file to `Downloads/Liquid Notes/`.
+- **List jumped while typing** — every keystroke re-rendered and re-sorted the sidebar,
+  stealing the scroll position. Rows now update in place and re-sort only on blur.
+- **Small touch targets** — swatches and chips were under 32 px on phones.
+- **Stale UI after an update** — the service worker was cache-first; it is now
+  network-first with an offline fallback.
+- **Settings panel closed on pick** and slider values could reach invalid states; all
+  settings are now clamped and validated.
+- Reduced-motion users no longer get the zoom animations, and the manifest no longer
+  declares screenshot sizes that do not match the files.
 
 ### Screenshots
 

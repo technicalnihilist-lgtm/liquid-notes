@@ -2,7 +2,7 @@
   "name": "Liquid Notes",
   "short_name": "Liquid Notes",
   "description": "A liquid-glass note taking app that works offline.",
-  "id": "/liquid-notes/",
+  "id": "/",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -43,14 +43,14 @@
   "screenshots": [
     {
       "src": "screenshots/desktop.png",
-      "sizes": "1440x900",
+      "sizes": "2880x1800",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Notes on desktop"
     },
     {
       "src": "screenshots/mobile.png",
-      "sizes": "390x844",
+      "sizes": "1170x2532",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Notes on mobile"

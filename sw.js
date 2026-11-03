@@ -1,5 +1,7 @@
-/* Liquid Notes service worker — app shell cache for full offline use. */
-const VERSION = 'liquid-notes-v1';
+/* Liquid Notes service worker.
+   Network-first for the app shell so a deployed fix is picked up immediately,
+   cache as the fallback so the app still opens with no connection. */
+const VERSION = 'liquid-notes-v3';
 const SHELL = [
   './',
   './index.html',
@@ -10,10 +12,14 @@ const SHELL = [
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
 ];
+const CORE = new Set(['/index.html', '/styles.css', '/app.js', '/manifest.webmanifest']);
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(VERSION).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting())
+    caches.open(VERSION)
+      .then((cache) => cache.addAll(SHELL))
+      .catch(() => {})
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -29,9 +35,23 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
 
-  if (req.mode === 'navigate') {
+  let url;
+  try { url = new URL(req.url); } catch (e) { return; }
+  if (url.origin !== self.location.origin) return;
+
+  const isCore = req.mode === 'navigate' || CORE.has(url.pathname);
+
+  if (isCore) {
     event.respondWith(
-      fetch(req).catch(() => caches.match('./index.html'))
+      fetch(req)
+        .then((res) => {
+          if (res && res.status === 200 && res.type === 'basic') {
+            const copy = res.clone();
+            caches.open(VERSION).then((cache) => cache.put(req, copy)).catch(() => {});
+          }
+          return res;
+        })
+        .catch(() => caches.match(req).then((hit) => hit || caches.match('./index.html')))
     );
     return;
   }
@@ -42,10 +62,10 @@ self.addEventListener('fetch', (event) => {
       return fetch(req).then((res) => {
         if (res && res.status === 200 && res.type === 'basic') {
           const copy = res.clone();
-          caches.open(VERSION).then((cache) => cache.put(req, copy));
+          caches.open(VERSION).then((cache) => cache.put(req, copy)).catch(() => {});
         }
         return res;
-      }).catch(() => hit);
+      });
     })
   );
 });

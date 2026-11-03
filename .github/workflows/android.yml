@@ -39,6 +39,14 @@ jobs:
           path: ~/.android/debug.keystore
           key: liquid-notes-debug-keystore-v1
 
+      - name: Read app version
+        id: ver
+        working-directory: android
+        run: |
+          VERSION=$(grep -oP "versionName '\K[^']+" app/build.gradle)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "building Liquid Notes $VERSION"
+
       - name: Build debug APK
         working-directory: android
         run: gradle --no-daemon assembleDebug
@@ -60,8 +68,8 @@ jobs:
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v1.0.0' }}
-          name: Liquid Notes ${{ github.ref_type == 'tag' && github.ref_name || 'v1.0.0' }}
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}', steps.ver.outputs.version) }}
+          name: Liquid Notes ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}', steps.ver.outputs.version) }}
           body: |
             Liquid Notes — installable liquid-glass notes.
 

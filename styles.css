@@ -84,6 +84,7 @@ body{
 #list b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #list small{display:block;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
 #list li.armed{padding-right:96px}
+#list li.empty{cursor:default;color:var(--ink2)}
 @keyframes pop{from{transform:scale(.6);opacity:0}}
 @keyframes gone{to{transform:scale(.6) translateX(-30px);opacity:0}}
 .dbtn{
@@ -105,7 +106,7 @@ body{
 /* ---------- settings sheet ---------- */
 .menu{
   position:absolute;right:14px;top:calc(58px + env(safe-area-inset-top,0px));
-  visibility:hidden;width:300px;max-height:calc(100% - 90px);overflow:auto;z-index:5;padding:14px;border-radius:22px;
+  visibility:hidden;width:300px;max-height:calc(100% - 74px);overflow:auto;overscroll-behavior:contain;z-index:5;padding:14px 14px 22px;border-radius:22px;
   background:rgba(var(--gl),.55);
   -webkit-backdrop-filter:blur(40px) saturate(200%);backdrop-filter:blur(40px) saturate(200%);
   border:1px solid rgba(255,255,255,.35);
@@ -114,16 +115,16 @@ body{
   transition:transform calc(.5s/var(--speed)) cubic-bezier(.3,1.6,.4,1),opacity .2s,visibility 0s .5s;
 }
 .menu.open{transform:none;opacity:1;pointer-events:auto;visibility:visible;transition-delay:0s}
-.menu label{display:flex;justify-content:space-between;font-size:13px;margin-top:10px}
+.menu label{display:flex;justify-content:space-between;font-size:13px;margin-top:8px}
 .menu output{color:var(--ink2);font-variant-numeric:tabular-nums}
 .menu input[type=range]{width:100%;accent-color:var(--accent)}
-.menu h4{margin:14px 0 4px;font-size:13px;color:var(--ink2);font-weight:600}
+.menu h4{margin:12px 0 4px;font-size:13px;color:var(--ink2);font-weight:600}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-.sw{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.6);cursor:pointer;padding:0}
+.sw{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.6);cursor:pointer;padding:0}
 .sw.on{box-shadow:0 0 0 2px var(--ink)}
 .chip{
   border:1px solid var(--line);background:rgba(var(--gl),.4);color:var(--ink);
-  border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer;
+  border-radius:999px;padding:7px 14px;min-height:34px;font:inherit;font-size:13px;cursor:pointer;
 }
 .chip.on{background:var(--accent);color:#fff;border-color:transparent}
 
@@ -150,8 +151,27 @@ body{
   .side{width:auto;height:38%;flex:0 0 auto}
   .menu{right:8px;width:calc(100% - 16px)}
   .title{font-size:20px}
+  .ib{width:40px;height:40px;font-size:17px}
+  .chip{min-height:40px;padding:9px 15px;font-size:14px}
+  .sw{width:38px;height:38px}
+  .row{gap:10px}
 }
 @media (prefers-reduced-motion:reduce){
   .orb,.win,#list li{transition:none!important;animation:none!important}
 }
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- fatal error fallback ---------- */
+.fatal{
+  position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:50;
+  width:min(420px,calc(100vw - 32px));padding:22px;border-radius:22px;
+  background:rgba(255,255,255,.9);color:#14161c;border:1px solid rgba(0,0,0,.08);
+  box-shadow:0 24px 70px rgba(0,0,0,.3);
+  -webkit-backdrop-filter:blur(30px);backdrop-filter:blur(30px);
+}
+@media (prefers-color-scheme:dark){.fatal{background:rgba(30,32,44,.94);color:#f4f5fa;border-color:rgba(255,255,255,.14)}}
+.fatal h2{margin:0 0 8px;font-size:18px}
+.fatal p{margin:0 0 14px;font-size:14px;line-height:1.5;opacity:.75}
+.fatal .row{margin-top:0}
+.fatal .chip{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12)}
+@media (prefers-color-scheme:dark){.fatal .chip{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18)}}
