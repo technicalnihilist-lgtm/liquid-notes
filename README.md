@@ -1,10 +1,10 @@
 <div align="center">
 
+<img src="assets/icon.png" width="96" height="96" alt="Liquid Notes icon">
+
+<img src="assets/banner.svg" alt="Liquid Notes — an installable, offline-first liquid-glass notes PWA, plus a native Android WebView…">
+
 <a href="https://github.com/technicalnihilist-lgtm/liquid-notes/stargazers"><img src="https://img.shields.io/badge/stars-0-5A31F4?style=for-the-badge&logo=github&logoColor=white" alt="stars: 0"></a>&nbsp;<a href="https://github.com/technicalnihilist-lgtm/liquid-notes/network/members"><img src="https://img.shields.io/badge/forks-0-3FB950?style=for-the-badge" alt="forks: 0"></a>
-
-<h3>Liquid Notes — an installable, offline-first liquid-glass notes PWA, plus a native Android WebView…</h3>
-
-<img src="https://img.shields.io/badge/JavaScript-5865F2?style=flat-square" alt="JavaScript"> <img src="https://img.shields.io/badge/Zero%20trackers-3B3F4A?style=flat-square" alt="Zero trackers"> <img src="https://img.shields.io/badge/Open%20source-3FB950?style=flat-square" alt="Open source">
 
 <a href="https://github.com/technicalnihilist-lgtm/liquid-notes/releases/latest"><img src="https://img.shields.io/badge/DOWNLOAD-APK-6D5AE6?style=for-the-badge&logo=android&logoColor=white" alt="Download APK"></a> <a href="https://technicalnihilist-lgtm.github.io/liquid-notes/"><img src="https://img.shields.io/badge/OPEN-WEBSITE-EC4899?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Website"></a>
 
@@ -16,13 +16,7 @@
 
 <a href="https://github.com/technicalnihilist-lgtm/liquid-notes/releases/latest"><img src="https://img.shields.io/badge/VERSION-v1.3.0-6D5AE6?style=for-the-badge" alt="VERSION: v1.3.0"></a> <img src="https://img.shields.io/badge/DOWNLOADS-0-3FB950?style=for-the-badge" alt="DOWNLOADS: 0"> <a href="https://technicalnihilist-lgtm.github.io/liquid-notes/"><img src="https://img.shields.io/badge/WEBSITE-LIVE-EC4899?style=for-the-badge&logo=googlechrome&logoColor=white" alt="WEBSITE: LIVE"></a>
 
-<h4>Get it from</h4>
-
-<a href="https://github.com/technicalnihilist-lgtm/liquid-notes/releases"><img src="https://img.shields.io/badge/GitHub-Releases-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub Releases"></a> <a href="https://technicalnihilist-lgtm.github.io/liquid-notes/"><img src="https://img.shields.io/badge/Website-Live-EC4899?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Website"></a> <a href="https://github.com/technicalnihilist-lgtm/liquid-notes/archive/refs/heads/main.zip"><img src="https://img.shields.io/badge/Source-ZIP-0EA5E9?style=for-the-badge&logo=github&logoColor=white" alt="Source ZIP"></a>
-
 </div>
-
----
 
 ---
 
